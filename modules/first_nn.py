@@ -22,6 +22,7 @@ class NeuralNet:
         return np.random.randn(size_l, size_l1) * np.sqrt(2/(size_l+size_l1))
 
 
+
     def __forward(self, data):
         """
             Pass data through neural network and calculate all values.
@@ -29,11 +30,14 @@ class NeuralNet:
 
         weights = self.weights
         biases = self.biases
+        activations = []
         for i in range(len(self.weights)):
             result = np.dot(weights[i], data)
             summed_up = np.sum(result, axis = 1) + biases[i]
             data = act_f.sig(result)
+            activations.append(data)
 
+        self.activations = activations
         return data
 
 
@@ -43,10 +47,6 @@ class NeuralNet:
         """
         activation = data
         activations = []
-
-        for 
-        
-
 
 
     def __update(self, weights, derivatives):
