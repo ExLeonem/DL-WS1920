@@ -2,22 +2,6 @@ import numpy as np
 import math
 
 
-# import mlp
-# importlib.reload(mlp)
-
-# # Parameters
-# mbs = 10
-# eta = 0.03
-# epochs = 150
-# sizes = [2, 2, 2, 1]
-
-# mlp = mlp.MLP(sizes)
-# mlp.fit(epochs = epochs, mini_batch_size = mbs, eta = eta)
-# x_train, y_train = gen_data(400)
-# x_test, y_test = gen_data(200)
-# mlp.train(x_train, y_train, x_test, y_test)
-
-
 class MLP:
 
     def __init__(self, arch, activation ="sigmoid"):
@@ -103,8 +87,6 @@ class MLP:
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
         
-
-        print(list(zip(self.weights, nabla_w)))
         # Berechne neue Gewichte
         self.weights = [w-(eta/xmb.shape[0])*nw for w, nw in zip(self.weights, nabla_w)]
 
@@ -246,7 +228,7 @@ class MLP:
     # -----------------------
 
     def sigmoid(self, z):
-        return (1.0 / 1.0 + np.exp(-z))
+        return 1.0 / (1.0 + np.exp(-z))
 
 
     def sigmoid_prime(self, z):
