@@ -4,15 +4,21 @@ import math
 
 class MLP:
 
-    def __init__(self, arch, activation ="sigmoid"):
+    def __init__(self, arch, activation ="sigmoid", epochs = 150, mbs = 10, eta = .03):
         self.arch = arch
         self.num_layers = len(arch)
         self.biases = [np.random.randn(y, 1) for y in self.arch[1:]] # biases initializieren
         self.weights = [self.__weight_init(x, y) for x, y in zip(self.arch[:-1], self.arch[1:])] # Gewichte anlegen
 
         # set activation function to be used
+        self.activation_name = activation;
         self.activation = self.__init_activation(activation)
         self.activation_prime = self.__init_prime(activation)
+
+        # Training Parameter
+        self.epochs = epochs
+        self.mbs = mbs
+        self.eta = eta
 
 
     def __backprop(self, x, y):
@@ -129,9 +135,13 @@ class MLP:
         return (correct, mse)
 
 
-    def fit(self, epochs = 150, mini_batch_size = 10, eta = .03):
+    def fit(self, epochs = 150, mbs = 10, eta = .03):
+        """
+            Fit's the neural network to given training data.
+
+        """
         self.epochs = epochs
-        self.mbs = mini_batch_size
+        self.mbs = mbs
         self.eta = eta
 
 
@@ -141,7 +151,7 @@ class MLP:
 
                 x - single data sample
         """
-        new_x = np.reshape(grid_x[j,:],(grid_x.shape[1],1)).copy()
+        new_x = x.reshape(x.shape[0], 1)
         return float(self.__feedforward(new_x))
 
 
@@ -157,6 +167,8 @@ class MLP:
 
             return (accuracy, mse-loss)
         """
+
+        print(self.__desc())
 
         n_test = x2.shape[0] # Anzahl Testdaten
         n = x0.shape[0]      # Anzahl Trainingsdaten
@@ -250,3 +262,24 @@ class MLP:
             \partial a for the output activations.
         """
         return (output_activations-y)
+
+
+    # -------------------------
+    # Utilities
+    # -------------------------
+
+    def __desc(self):
+
+        # Net parameters
+        epochs = self.epochs
+        eta = self.eta
+        mbs = self.mbs
+
+        activation = self.activation_name
+        loss = "mse"
+
+        header = f"++++++++++++++++++\n MLP SETUP \n++++++++++++++++++\n"
+        parameters = f" Epochs: {epochs}\n Learning-Rate: {eta}\n Mini-batch-size: {mbs}\n"
+        neuron_setup = f"------------\n Activation: {activation}\n Loss: {loss}"
+
+        return header + parameters + neuron_setup + "\n++++++++++++++++++"
