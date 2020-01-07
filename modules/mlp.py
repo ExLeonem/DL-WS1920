@@ -2,6 +2,22 @@ import numpy as np
 import math
 
 
+# import mlp
+# importlib.reload(mlp)
+
+# # Parameters
+# mbs = 10
+# eta = 0.03
+# epochs = 150
+# sizes = [2, 2, 2, 1]
+
+# mlp = mlp.MLP(sizes)
+# mlp.fit(epochs = epochs, mini_batch_size = mbs, eta = eta)
+# x_train, y_train = gen_data(400)
+# x_test, y_test = gen_data(200)
+# mlp.train(x_train, y_train, x_test, y_test)
+
+
 class MLP:
 
     def __init__(self, arch, activation ="sigmoid"):
@@ -230,7 +246,7 @@ class MLP:
     # -----------------------
 
     def sigmoid(self, z):
-        return (1 / 1 + np.exp(-z))
+        return (1.0 / 1.0 + np.exp(-z))
 
 
     def sigmoid_prime(self, z):
@@ -242,7 +258,7 @@ class MLP:
 
 
     def tanh_prime(self, z):
-        return (1 / np.cosh(np.cosh(z)))
+        return (1.0 / np.cosh(np.cosh(z)))
 
 
     # Ableitung der MSE-Kostenfunktion
