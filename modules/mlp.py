@@ -4,7 +4,7 @@ import math
 
 class MLP:
 
-    def __init__(self, arch, activation ="sigmoid", epochs = 150, mbs = 10, eta = .03):
+    def __init__(self, arch, activation ="sigmoid", loss = "mse", epochs = 150, mbs = 10, eta = .03):
         self.arch = arch
         self.num_layers = len(arch)
         self.biases = [np.random.randn(y, 1) for y in self.arch[1:]] # biases initializieren
@@ -14,6 +14,11 @@ class MLP:
         self.activation_name = activation;
         self.activation = self.__init_activation(activation)
         self.activation_prime = self.__init_prime(activation)
+
+        # loss config
+        self.loss_name = loss
+        self.loss_fun = self.__init_loss(loss)
+        self.loss_count = 0
 
         # Training Parameter
         self.epochs = epochs
@@ -43,6 +48,7 @@ class MLP:
         
         # Rückwärtslauf
         delta = self.__cost_derivative(activations[-1], y) * self.activation_prime(zs[-1]) # Fehler am Output
+        self.loss_count += delta
         nabla_b[-1] = delta # Update Schwellwert in der Ausgangsschicht
         nabla_w[-1] = np.dot(delta, activations[-2].transpose()) # Update Gewichte in der Ausgangsschicht
         for l in range(2, self.num_layers): # Backpropagation
@@ -220,6 +226,14 @@ class MLP:
         elif function_name == "tanh":
             return self.tanh
 
+        raise ArgumentError("There's currently no support for activation named " + str(function_name))
+
+
+    def __init_loss(self, loss_name):
+
+        if loss_name == "mse":
+            return 
+
 
     def __init_prime(self, function_name):
 
@@ -233,6 +247,17 @@ class MLP:
     def __weight_init(self, weight_prev, weight_current):
         return np.random.randn(weight_current, weight_prev) * np.sqrt(2/(weight_prev+weight_current))
 
+
+    # -----------------------
+    # Loss-Functions
+    # -----------------------
+
+    def mse(self, y, ypred):
+        pass
+
+
+    def lg_cost(self, y, ypred):
+        pass
 
 
     # -----------------------
