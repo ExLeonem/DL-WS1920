@@ -7,6 +7,10 @@ import keras
 from keras.models import model_from_json
 
 
+def compare_models(first, second):
+    print("compared models")
+
+
 def export_model(model, file_path):
     """
         Saves a trained deep learning model into a .json file.
@@ -29,12 +33,14 @@ def export_model(model, file_path):
     model_json = model.to_json()
     with open(file_path, 'w') as model_file:
         model_file.write(model_json)
-        
-    model.save_weights(os.path.join(dir_path, file_name, "h5")) # save file parameter in h5 file
+        print("Model written into json.")
+
+    model.save_weights(os.path.join(dir_path, file_name + ".h5")) # save file parameter in h5 file
+    print("Weights written into file.")
 
 
 
-def load_model(file_path):
+def import_model(file_path):
     """
         Retrieves an saved model from a .json file.
 
@@ -55,13 +61,56 @@ def load_model(file_path):
     # Load model
     model_json_file = open(file_path)
     model_data = model_json_file.read()
+    model_json_file.close()
     model = model_from_json(model_data)
+    print("Model loaded")
 
     # Load Parameter
-    model.load_weights(os.path.join(dir_path, file_name, "h5"))
+    model.load_weights(os.path.join(dir_path, file_name + ".h5"))
+    print("Parameters loaded")
 
     return model
     
+
+
+def compare(f_model, s_model, x_test, y_test):
+    """
+        Compares two models.
+
+        @param f_model - first model
+        @param s_model - second model
+        @param x_test - x test data to evaluated the models on
+        @param y_test - y labels to validate the predictions
+
+        @return -1: f_model better | 0: models are equally good | 1: s_model is better
+    """
+
+
+    eval_first = f_model.evaluate(x_test, y_test)
+    eval_sec = s_model.evaluate(x_test, y_test)
+
+    if eval_first[-1] > eval_sec[-1]:
+        return -1
+    elif eval_first[-1] < eval_sec[-1]:
+        return 1
+    
+    return 0
+
+
+
+
+def model_exists(file_path):
+
+    ext, file_name, dir_path = __split_path(file_path)
+
+    if not __is_json(ext): 
+        raise ArgumentError("Models are onyl saved in json files.")
+
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return True
+
+    return False
+
 
 
 # -----------------------------
@@ -73,14 +122,14 @@ def __split_path(file_path):
         Splits the given file path for further processing.
     """
 
-    _r, extension = file_path.splitext(file_path)
+    _r, extension = os.path.splitext(file_path)
 
     splitted_rest = os.path.split(_r)
     rest_path = ""
     file_name = _r
     if len(splitted_rest) > 1:
-        rest_path = os.path.join(splitted_rest[:-1])
-        file_name = splitted_rest[-1]
+        rest_path = splitted_rest[0]
+        file_name = splitted_rest[1]
 
 
     return (extension, file_name, rest_path)
