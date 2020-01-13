@@ -272,7 +272,9 @@ class MLP:
         return (ypred - y) ** 2
 
     def logreg(self, y, ypred):
-        return -y * np.log(ypred) - ((1 - y) * np.log(1 - ypred))
+        cost = -y * np.log(ypred) - ((1 - y) * np.log(1 - ypred))
+        cost = np.nan_to_num(cost)
+        return cost
 
 
     # -----------------------
