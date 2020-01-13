@@ -105,6 +105,9 @@ class MLP:
         # Berechne neue Gewichte
         self.weights = [w-(eta/xmb.shape[0])*nw for w, nw in zip(self.weights, nabla_w)]
 
+        # print("-------------")
+        # print(self.weights)
+
         self.biases = [b-(eta/xmb.shape[0])*nb for b, nb in zip(self.biases, nabla_b)]
         
         return (self.weights, self.biases)
