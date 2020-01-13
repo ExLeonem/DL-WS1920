@@ -20,6 +20,9 @@ class MLP:
         self.loss_fun = self.__init_loss(loss)
         self.loss_count = 0
 
+        #cost derivative config
+        self.cost_derivative = self.__init_cost_derivative(loss)
+
         # Training Parameter
         self.epochs = epochs
         self.mbs = mbs
@@ -47,7 +50,7 @@ class MLP:
             activations.append(activation)
         
         # Rückwärtslauf
-        delta = self.__cost_derivative(activations[-1], y) * self.activation_prime(zs[-1]) # Fehler am Output
+        delta = self.cost_derivative(activations[-1], y) * self.activation_prime(zs[-1]) # Fehler am Output
         self.loss_count += delta
         nabla_b[-1] = delta # Update Schwellwert in der Ausgangsschicht
         nabla_w[-1] = np.dot(delta, activations[-2].transpose()) # Update Gewichte in der Ausgangsschicht
@@ -116,7 +119,7 @@ class MLP:
         """
         
         correct = 0 # Anzahl korrekt klassifizierter Testbeispiele
-        mse = 0 # mean-squared-loss
+        loss = 0 # mean-squared-loss
         
         # Gehe den Testdatensatz durch
         for i in range(0, x2.shape[0]):
@@ -130,15 +133,15 @@ class MLP:
             ypred = self.__feedforward(x)
 
             # MSE Loss summation
-            mse += math.pow(y - ypred, 2)
-            
+            loss += self.loss_fun(y,ypred)
+
             # Falls beide übereinstimmen, addiere zur Gesamtzahl
             if (int(y) == 1 and float(ypred) >= 0.5) or (int(y) == 0 and float(ypred) < 0.5) :
                 correct += 1
             
-        mse = mse / x2.shape[0]
+        loss = loss / x2.shape[0]
         
-        return (correct, mse)
+        return (correct, loss)
 
 
     def fit(self, epochs = 150, mbs = 10, eta = .03):
@@ -187,7 +190,7 @@ class MLP:
         
         # gehe durch alle Epochen
         acc_val = np.zeros(epochs)
-        mse_loss = np.zeros(epochs)
+        cost_loss = np.zeros(epochs)
         for j in range(epochs):
             
             # Bringe die Trainingsdaten in eine zufällige Reihenfolge für jede Epoche
@@ -205,12 +208,12 @@ class MLP:
                 self.__update_mini_batch(xmb, ymb, eta)
             
             # Gib Performance aus
-            (correct, mse) = self.__evaluate(x2, y2)
+            (correct, loss) = self.__evaluate(x2, y2)
             acc_val[j] = correct
-            mse_loss[j] = mse
-            print("Epoch {0}: {1} / {2} [MSE: {3}]".format(j, acc_val[j], n_test, round(mse_loss[j], 3)))
+            cost_loss[j] = loss
+            print("Epoch {0}: {1} / {2} [Loss: {3}]".format(j, acc_val[j], n_test, round(cost_loss[j], 3)))
         
-        return (acc_val, mse_loss)
+        return (acc_val, cost_loss)
 
 
 
@@ -232,7 +235,20 @@ class MLP:
     def __init_loss(self, loss_name):
 
         if loss_name == "mse":
-            return 
+            return self.mse
+        elif loss_name == "logreg":
+            return self.logreg
+
+        raise ArgumentError("There's currently no support for loss named " + str(loss_name))
+
+    def __init_cost_derivative(self, loss_name):
+
+        if loss_name == "mse":
+            return self.__cost_derivative_mse
+        elif loss_name == "logreg":
+            return self.__cost_derivative_logreg
+
+        raise ArgumentError("There's currently no support for loss named " + str(loss_name))
 
 
     def __init_prime(self, function_name):
@@ -253,11 +269,12 @@ class MLP:
     # -----------------------
 
     def mse(self, y, ypred):
-        pass
+        return (ypred - y) ** 2
 
-
-    def lg_cost(self, y, ypred):
-        pass
+    def logreg(self, y, ypred):
+        cost = -y * np.log(ypred) - ((1 - y) * np.log(1 - ypred))
+        cost = np.nan_to_num(cost)
+        return cost
 
 
     # -----------------------
@@ -281,13 +298,17 @@ class MLP:
 
 
     # Ableitung der MSE-Kostenfunktion
-    def __cost_derivative(self, output_activations, y):
+    def __cost_derivative_mse(self, output_activations, y):
         """
             Return the vector of partial derivatives \partial C_x /
             \partial a for the output activations.
         """
         return (output_activations-y)
 
+    def __cost_derivative_logreg(selfself, output_activations, y):
+        cost_derivative = (-1 * (output_activations - y)) / ((output_activations - 1) * output_activations)
+        cost_derivative = np.nan_to_num(cost_derivative)
+        return cost_derivative
 
     # -------------------------
     # Utilities
@@ -301,7 +322,7 @@ class MLP:
         mbs = self.mbs
 
         activation = self.activation_name
-        loss = "mse"
+        loss = self.loss_name
 
         header = f"++++++++++++++++++\n MLP SETUP \n++++++++++++++++++\n"
         parameters = f" Epochs: {epochs}\n Learning-Rate: {eta}\n Mini-batch-size: {mbs}\n"
