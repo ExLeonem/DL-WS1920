@@ -65,10 +65,10 @@ In this excercise, we try to classify images of : "Miranda_Cosgrove" "Chris_Mart
 
 Train a model (as shown below) from scratch, using the training data for training and the validation data for validation. For all activations in the hidden layer use the 'ReLU', for the last layer use softmax. Use 3x3 convolutions and use padding = same.
 
-- [ ] Plot the learning curves: (epochs vs training loss and validation loss) and epochs vs accuracy.
-- [ ] Calculate the accuracy on the test set (you should reach an accuracy of about 0.54)
-- [ ] Calculate the confusion matrix
-- [ ] Have a look at missclassified examples
+- [x] Plot the learning curves: (epochs vs training loss and validation loss) and epochs vs accuracy.
+- [x] Calculate the accuracy on the test set (you should reach an accuracy of about 0.54)
+- [x] Calculate the confusion matrix
+- [x] Have a look at missclassified examples
 
 Image of the network:
 https://github.com/ioskn/mldl_htwg/blob/master/uebungen/dl_cnn_faces_net.png
@@ -115,3 +115,66 @@ Hint: Use the max-pooling operation in a clever way.
 
 ### 3. Visualize the learned kernel
 Visualize the learned kernel, you might want to use `model.get_weights()`. Does the learned kernel makes sense?
+
+
+
+
+## Prediction of time series with different neural networks architectures
+In this notebook we will use different network architectures to predict the next steps for a time series. We compare:
+
+1D causal convolutional networks
+1D causal convolutional networks witho dilation rate
+RNNs
+LSTMs
+We forecast a time series for longer times than we trained them on and compare the results of the different architectures. The goal is to capture the longterm dependencies of the time series.
+
+
+### Simulate some data
+
+We produce training data with two different time scales and a bit of noise. This produces 1000 curves which all follow the same pattern: a fast changing sine wave where the amplitude is modulated by a sine wave with lower frequency. To make it a bit more challenging, we add some noise at each timestep of the waves. All of the 1000 waves have the same pattern, however, the starting point is randomly shifted in time. One such example is shown the plot below. The first 128 data points are used as an input to the model (shown as a line). The model should predict the following 10 data points (shown as points). Note that the future data does not follow a smooth curve, but instead is ragged because of the random noise present in the data.
+
+
+### A) 1D Convolution without dilation rate
+
+
+#### Build network
+Here we define a Neural network with 1D convolutions and "causal" padding. 
+
+Build a first model using the causal convolutions. Don't specify the sequence length (batch_input_shape=(None, None, 1)), so you can use a different sequence length in prediction later. The network should have 4, 1-dimensional convolutional layers, with a kernelsize of `ks=5` and 32 features. Use the keras function `Convolution1D` for that. The network should report 10 values that the end. You can achive this with the function.
+
+```{pyhon}
+def slice(x, slice_length):
+    return x[:,-slice_length:,:]
+...
+model1.add(Lambda(slice, arguments={'slice_length':look_ahead}))
+```
+
+Which you add at the end of the network.
+
+- [x] first 800 sequences for training
+- [x] last 200 for validation
+- [x] mean squared error (MSE) (should get a MSE of approx 0.02 to 0.03)
+
+#### Make repeated predictions
+
+Since we work with simulated data, we can produce as much new data as we like. We can also switch off the noise and check how well the model can extract the real underlying pattern in the data.
+
+Write a function which predicts 10 values from a starting sequence of size 128. Then add these predicted values to the starting sequence and uses this sequence of length 138 as a new starting sequence. Repeat this procedure 12 times. You should get a prediction for 120 time points in the future. 
+
+### B) 1D Convolution with dilation rate
+
+Here we define a Neural network with 1D convolutions and "causal" padding, this time with dilation rate, so we are able to look back longer in time (see figure below)
+ 
+![](https://i.stack.imgur.com/20xRe.png)
+- [x] Build the same network as in A) but this time with dilation_rates 1,2,4,8 
+
+### C) Simple RNN
+
+- [x] use a RNN cell Keras `SimpleRNN` to see if we are able to learn the data generating process. Start with a hidden state size of 12. Repeat the task from A) and B). Consider to add several layers of cells and play with the state size.
+
+#### Make repeated predictions
+- [x] As in A) make preaded preditions on noise less data.
+
+### D) LSTM Cell
+- [x] Repeat C) but now with an LSTM cell.
+
